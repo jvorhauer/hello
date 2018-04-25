@@ -1,37 +1,38 @@
 package basetime.actors
 
 import akka.actor.{ ActorLogging, ActorRef, Props }
-import akka.persistence.PersistentActor
-import basetime.Main
+import akka.pattern.{ PipeToSupport, ask }
+import akka.persistence.{ PersistentActor, RecoveryCompleted }
+import akka.util.Timeout
 import basetime.model.Command
 
+import scala.concurrent.duration._
 
-class CommandProcessor extends PersistentActor with ActorLogging {
+final class CommandProcessor extends PersistentActor with ActorLogging with PipeToSupport {
 
-  override def persistenceId =  "command"
+  implicit val timeout     : Timeout           = Timeout(5.seconds)
 
-  val consumerActor: ActorRef = Main.consumerActor
+  private val consumerActor = context.actorOf(ConsumerActor.props, "consumer")
+  private val producerActor = context.actorOf(ProducerActor.props, "producer")
+  private val workerActor   = context.actorOf(WorkerActor.props,   "worker")
 
+  override def persistenceId = "command"
 
   override def receiveRecover = {
-    case c: Command   => process(c, recovering = true)
+    case c: Command => log.info(s"command: $c")
+    case RecoveryCompleted => log.info("recovery completed")
   }
 
   override def receiveCommand = {
-    case c: Command => persist(c) { pc => process(pc) }
+    case c: Command => persist(c) { pc => process(pc, sender) }
   }
 
-
-  private def process(command: Command, recovering: Boolean = false): Unit = {
-    log.debug(s"process: $command ${if (recovering) " (recovering)"}")
-    command.topic match {
-      case "consumer" => consumerActor ! command
-
-      case _ => log.info(s"process: unhandled topic of $command")
+  def process(c: Command, sender: ActorRef) = {
+    c.topic match {
+      case "consumer" => (consumerActor ? c) pipeTo sender
     }
   }
 }
-
 
 object CommandProcessor {
   val props = Props[CommandProcessor]

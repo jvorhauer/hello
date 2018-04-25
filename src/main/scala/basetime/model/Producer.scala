@@ -2,7 +2,7 @@ package basetime.model
 
 import java.util.UUID
 
-import basetime.Main
+import basetime.Repository
 import gremlin.scala._
 
 
@@ -18,12 +18,18 @@ object Producer {
   val label = "producer"
   private val IdKey = Key[UUID]("id")
 
-  def list() : List[Producer] = Main.graph.V.hasLabel[Producer].toCC[Producer].toList()
+  def save(p: Producer): Producer = {
+     find(p.id).map(
+       vertex => vertex.updateAs[Producer](producer => producer.copy(name = p.name))
+     ).getOrElse(
+       Repository.graph.addVertex(p)
+     ).toCC[Producer]
+  }
+  def list            : List[Producer] = all.map(_.toCC[Producer])
+  def find(id: UUID)  : Option[Vertex] = locate(id).headOption
+  def delete(id: UUID): Unit           = locate(id).drop.iterate()
 
-  def findAsV(id: UUID): Option[Vertex] = Main.graph.V.hasLabel[Producer].has(IdKey, P.is(id)).headOption
-  def find(id: UUID): Option[Producer] = findAsV(id).map(v => v.toCC[Producer])
-  def vAsCC(v: Vertex): Producer = v.toCC[Producer]
-
-  def delete(id: UUID): Unit = Main.graph.V.hasLabel[Producer].has(IdKey, P.is(id)).drop
+  private def locate(id: UUID) = Repository.graph.V.hasLabel(label).has(IdKey, P.is(id))
+  private def all = Repository.all(label)
 }
 

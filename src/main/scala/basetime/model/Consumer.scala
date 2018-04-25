@@ -2,7 +2,7 @@ package basetime.model
 
 import java.util.UUID
 
-import basetime.Main
+import basetime.Repository
 import gremlin.scala._
 
 
@@ -12,15 +12,18 @@ final case class Consumer(
   name : String
 )
 
+
 object Consumer {
 
+  private val label = "consumer"
   private val IdKey = Key[UUID]("id")
 
-  def list : List[Consumer] = Main.graph.V.hasLabel[Consumer].toCC[Consumer].toList()
+  def save(c: Consumer): Consumer = {
+    find(c.id).map(_.updateAs[Consumer](_.copy(name = c.name))).getOrElse(Repository.graph.addVertex(c)).toCC[Consumer]
+  }
+  def list             : List[Consumer]   = Repository.all(label).map(_.toCC[Consumer])
+  def find(id: UUID)   : Option[Vertex]   = locate(id).headOption
+  def delete(id: UUID) : Unit             = locate(id).drop.iterate()
 
-  def findAsV(id: UUID) = Main.graph.V.hasLabel[Consumer].has(IdKey, P.is(id)).headOption
-  def find(id: UUID): Option[Consumer] = findAsV(id).map(v => v.toCC[Consumer])
-  def vAsCC(v: Vertex): Consumer = v.toCC[Consumer]
-
-  def delete(id: UUID) = Main.graph.V.hasLabel[Consumer].has(IdKey, P.is(id)).drop
+  private def locate(id: UUID) = Repository.graph.V.hasLabel(label).has(IdKey, P.is(id))
 }
