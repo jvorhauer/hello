@@ -22,8 +22,10 @@ lazy val root = (project in file("."))
   inThisBuild(List(
     organization := "nl.vorhacker",
     scalaVersion := "2.12.5",
+    publishArtifact := false,
   )),
   name := "basetime",
+  skip in publish := true,
 
   scalacOptions ++= Seq(
     "-deprecation",
