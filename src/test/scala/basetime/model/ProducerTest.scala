@@ -22,6 +22,19 @@ class ProducerTest extends WordSpecLike with Matchers with BeforeAndAfter {
       s.name should be ("test")
     }
 
+    "Process a new Producer Command" in {
+      val id = UUID.randomUUID()
+      val command = Command("producer", "create", s"""{"id":"$id","name":"test"}""")
+      Producer.process(command)
+
+      val f = Producer.find(id)
+      f shouldBe defined
+      Producer.list should have size 1
+      val p = f.get.toCC[Producer]
+      p.id should be (id)
+      p.name should be ("test")
+    }
+
     "Find an existing Producer" in {
       val id = UUID.randomUUID()
       Producer.save(Producer(id, "found"))
@@ -63,10 +76,10 @@ class ProducerTest extends WordSpecLike with Matchers with BeforeAndAfter {
 
     "Delete a Producer" in {
       val id = UUID.randomUUID()
-      Producer.save(Producer(id, "found"))
+      val p = Producer.save(Producer(id, "found"))
       Producer.list should have size 1
 
-      Producer.delete(id)
+      Producer.delete(p)
       Producer.list should have size 0
     }
   }
