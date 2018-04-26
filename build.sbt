@@ -23,6 +23,8 @@ lazy val root = (project in file("."))
     organization := "nl.vorhacker",
     scalaVersion := "2.12.5",
     publishArtifact := false,
+    skip in publish := true,
+    publishTo := Some(Resolver.file("file", new File(Path.userHome.absolutePath + "/.m2/repository"))),
   )),
   name := "basetime",
   skip in publish := true,
@@ -83,7 +85,7 @@ lazy val root = (project in file("."))
   buildInfoOptions += BuildInfoOption.BuildTime,
 
   publishArtifact := false,
-  publishTo in ThisBuild := Some(Resolver.file("file", new File(Path.userHome.absolutePath + "/.m2/repository"))),
+  publishTo := Some(Resolver.file("file", new File(Path.userHome.absolutePath + "/.m2/repository"))),
   publishMavenStyle := true,
 )
 .enablePlugins(BuildInfoPlugin)
