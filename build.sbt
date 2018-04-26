@@ -48,6 +48,7 @@ lazy val root = (project in file("."))
     "de.heikoseeberger"     %% "akka-http-circe"     % "1.20.1",
     "io.circe"              %% "circe-generic"       % "0.9.3",
     "io.circe"              %% "circe-parser"        % "0.9.3",
+    "io.circe"              %% "circe-java8"         % "0.9.3",
     "com.michaelpollmeier"  %% "gremlin-scala"       % "3.3.2.0",
     "org.apache.tinkerpop"  %  "tinkergraph-gremlin" % "3.3.2",
     "ch.qos.logback"        %  "logback-classic"     % "1.2.3",
