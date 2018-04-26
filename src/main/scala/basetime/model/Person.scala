@@ -6,8 +6,9 @@ import gremlin.scala.{ label, _ }
 
 @label("person")
 final case class Person(
-  email: String,
-  name : String,
+  @id id : Option[Int],
+  email  : String,
+  name   : String,
 ) extends Party
 
 

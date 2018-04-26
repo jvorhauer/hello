@@ -2,7 +2,7 @@ package basetime
 
 import java.util.UUID
 
-import akka.actor.ActorSystem
+import akka.actor.{ ActorRef, ActorSystem }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
@@ -10,7 +10,7 @@ import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
-import basetime.actors.{ ConsumerActor, ProducerActor, WorkerActor }
+import basetime.actors.CommandProcessor
 import basetime.info.SysInfo
 import basetime.model._
 import com.typesafe.config.Config
@@ -30,10 +30,7 @@ object Main {
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   implicit val timeout     : Timeout           = Timeout(5.seconds)
   private  val config      : Config            = system.settings.config
-
-  private val consumerActor = system.actorOf(ConsumerActor.props, "consumer")
-  private val producerActor = system.actorOf(ProducerActor.props, "producer")
-  private val workerActor   = system.actorOf(WorkerActor.props,   "worker")
+  private val commander    : ActorRef          = system.actorOf(CommandProcessor.props, "commander")
 
 
   def main(args: Array[String]): Unit = {
@@ -50,11 +47,12 @@ object Main {
           entity(as[Command]) { command =>
             system.log.info(s"/command: $command")
             command.topic match {
-              case "consumer" => complete((consumerActor ? command).mapTo[Option[Consumer]])
-              case "producer" => complete((producerActor ? command).mapTo[Option[Producer]])
-              case "worker"   => complete((workerActor   ? command).mapTo[Option[Person]])
-              case _          => complete(StatusCodes.NotAcceptable)
+              case "consumer" => complete((commander ? command).mapTo[Option[Consumer]])
+              case "producer" => complete((commander ? command).mapTo[Option[Producer]])
+              case "worker"   => complete((commander ? command).mapTo[Option[Person]])
+              case _ => complete(StatusCodes.BadRequest)
             }
+
           }
         }
       } ~

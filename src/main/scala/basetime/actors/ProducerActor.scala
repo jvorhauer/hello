@@ -1,26 +1,15 @@
 package basetime.actors
 
-import akka.actor.{ ActorLogging, Props }
-import akka.persistence.{ PersistentActor, RecoveryCompleted }
+import akka.actor.{ Actor, ActorLogging, Props }
 import basetime.model.{ Command, Producer }
 import io.circe.generic.auto._
 import io.circe.parser.decode
 
 
-final class ProducerActor extends PersistentActor with ActorLogging {
+final class ProducerActor extends Actor with ActorLogging {
 
-  override def persistenceId = "producer"
-
-  override def receiveRecover = {
-    case Command("producer", "create", data) => upsert(data)
-    case Command("producer", "update", data) => upsert(data)
-    case Command("producer", "delete", data) => delete(data)
-    case RecoveryCompleted                   => log.info("receiveRecover: recovery completed")
-    case other => log.error(s"receiveRecover: persisted $other not handled")
-  }
-
-  override def receiveCommand = {
-    case c: Command if c.topic == "producer" => persist(c) {
+  override def receive = {
+    case c: Command if c.topic == "producer" => c match {
       case Command("producer", "create", data) => sender ! upsert(data)
       case Command("producer", "update", data) => sender ! upsert(data)
       case Command("producer", "delete", data) => sender ! delete(data)
@@ -41,15 +30,9 @@ final class ProducerActor extends PersistentActor with ActorLogging {
   }
 
   def upsert(data: String): Option[Producer] = handle(data, Producer.save)
-
-  def delete(data: String): Option[Producer] = {
-    def rem(p: Producer): Producer = {
-      Producer.delete(p.id)
-      p
-    }
-    handle(data, rem)
-  }
+  def delete(data: String): Option[Producer] = handle(data, Producer.delete)
 }
+
 
 object ProducerActor {
   val props = Props[ProducerActor]
