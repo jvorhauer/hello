@@ -1,6 +1,23 @@
 import sbt._
+import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
+
+lazy val releaseSettings: Seq[Def.Setting[Seq[ReleaseStep]]] = Seq(
+  releaseProcess := Seq[ReleaseStep](
+    runClean,
+    checkSnapshotDependencies,
+    inquireVersions,
+    runTest,
+    setReleaseVersion,
+    commitReleaseVersion,
+    tagRelease,
+    setNextVersion,
+    commitNextVersion,
+    pushChanges
+  )
+)
 
 lazy val root = (project in file("."))
+.settings(releaseSettings)
 .settings(
   inThisBuild(List(
     organization := "nl.vorhacker",
