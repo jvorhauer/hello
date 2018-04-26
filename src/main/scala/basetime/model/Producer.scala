@@ -45,6 +45,6 @@ object Producer {
   }
 
   private def locate(id: UUID) = Repository.graph.V.hasLabel(label).has(IdKey, P.is(id))
-  private def all = Repository.all(label)
+  private def all = Repository.list(label)
 }
 

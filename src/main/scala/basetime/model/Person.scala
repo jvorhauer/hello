@@ -9,7 +9,7 @@ import gremlin.scala.{ label, _ }
 
 @label("person")
 final case class Person(
-  @id id : Option[Int],
+  @id id : Option[Long],
   email  : String,
   name   : String,
 ) extends Party
@@ -24,7 +24,7 @@ object Person {
   implicit val graph: ScalaGraph = Repository.graph
 
 
-  def list               : List[Person]   = Repository.all(label).map(_.toCC[Person])
+  def list               : List[Person]   = Repository.list(label).map(_.toCC[Person])
   def find(email: String): Option[Vertex] = locate(email).headOption
 
   def save(w: Worker): Option[Person] = {

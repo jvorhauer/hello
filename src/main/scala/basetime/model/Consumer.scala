@@ -24,7 +24,7 @@ object Consumer {
   def save(c: Consumer): Consumer = {
     find(c.id).map(_.updateAs[Consumer](_.copy(name = c.name))).getOrElse(Repository.graph.addVertex(c)).toCC[Consumer]
   }
-  def list                : List[Consumer] = Repository.all(label).map(_.toCC[Consumer])
+  def list                : List[Consumer] = Repository.list(label).map(_.toCC[Consumer])
   def find(id: UUID)      : Option[Vertex] = locate(id).headOption
   def delete(c: Consumer) : Consumer       = {
     locate(c.id).drop.iterate()
