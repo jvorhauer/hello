@@ -80,7 +80,6 @@ lazy val root = (project in file("."))
   buildInfoPackage := "build",
   buildInfoOptions += BuildInfoOption.BuildTime,
 
-  publishTo := Some(Resolver.file("file", new File(Path.userHome.absolutePath + "/.m2/repository"))),
-  publishMavenStyle := true,
+  publishArtifact := false,
 )
 .enablePlugins(BuildInfoPlugin)
